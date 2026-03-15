@@ -280,7 +280,7 @@ export default function Home() {
           <span className="text-green-400">#1</span> on ClickBench
         </h1>
         <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto mb-4">
-          Multi-GPU analytics with RAPIDS cuDF on 4x NVIDIA H200.<br />
+          Multi-GPU analytics with RAPIDS (cuDF, RMM, UCX) on 4x NVIDIA H200.<br />
           43 queries on 100M rows. Faster than every database on the leaderboard.
         </p>
         <p className="text-zinc-600 text-sm">March 2026</p>
