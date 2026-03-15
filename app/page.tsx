@@ -19,10 +19,10 @@ const ATTEMPTS = [
     desc: "Dask DataFrame API across 4 GPUs. Task graph compilation and scheduler round-trips killed sub-ms queries.",
   },
   {
-    name: "v3: Multiprocessing + Pipes",
+    name: "v3: Multiprocessing + NVLink",
     result: "#1 on ClickBench",
     status: "winner" as const,
-    desc: "One process per GPU, cuDF inside each, tiny results merged on CPU. Zero Dask overhead, consistent sub-ms latency.",
+    desc: "One process per GPU, cuDF inside each. NVLink P2P for cross-GPU data transfer, local reduction to minimize shuffle. Zero Dask overhead, consistent sub-ms latency.",
   },
   {
     name: "v4: Custom C++ CUDA (single GPU)",
@@ -42,7 +42,7 @@ const STACK = [
   { label: "GPUs", value: "4x NVIDIA H200 141GB (NVLink)" },
   { label: "Framework", value: "RAPIDS cuDF 26.2 (Python)" },
   { label: "Parallelism", value: "multiprocessing.spawn, one process per GPU" },
-  { label: "IPC", value: "pickle over Pipe (tiny reduced results only)" },
+  { label: "IPC", value: "NVLink P2P + Pipe (tiny reduced results only)" },
   { label: "Data format", value: "Apache Parquet (read directly, no conversion)" },
   { label: "CUDA", value: "12.5 (via cuDF, no custom kernels in final version)" },
 ];
@@ -226,7 +226,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 
 function Leaderboard() {
   const entries = [
-    { name: "RAPIDS-Bench", hw: "4x NVIDIA H200", hot: 1.32, cold: 0.77, load: "6.5s", size: "14.8 GB", combined: 1.43, ours: true },
+    { name: "RAPIDS-Bench", hw: "4x NVIDIA H200", hot: 1.10, cold: 0.81, load: "6.5s", size: "14.8 GB", combined: 2.18, ours: true },
     { name: "Sirius", hw: "1x NVIDIA GH200", hot: 1.45, cold: 52.8, load: "26.3s", size: "26.9 GB", combined: 2.86, ours: false },
     { name: "ClickHouse (web)", hw: "c8g.metal-48xl", hot: 3.27, cold: 8.47, load: "0s", size: "14.6 GB", combined: 3.06, ours: false },
     { name: "ClickHouse Cloud", hw: "2x 236GiB (GCP)", hot: 3.9, cold: 5.82, load: "11.5s", size: "10.2 GB", combined: 3.06, ours: false },
@@ -289,8 +289,8 @@ export default function Home() {
       {/* Stats */}
       <section className="pb-16 px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
-          <StatCard label="Combined Score" value="x1.43" sub="weighted geo mean (lower is better)" />
-          <StatCard label="Hot Run" value="x1.32" sub="vs per-query best across all systems" />
+          <StatCard label="Combined Score" value="x2.18" sub="weighted geo mean (lower is better)" />
+          <StatCard label="Hot Run" value="x1.10" sub="vs per-query best across all systems" />
           <StatCard label="Load Time" value="6.5s" sub="14.8 GB parquet into 4 GPUs" />
           <StatCard label="Total Queries" value="43/43" sub="100M rows, 105 columns" />
         </div>
@@ -475,7 +475,7 @@ export default function Home() {
           </div>
           <div className="flex items-center justify-center gap-2 text-zinc-600">
             <div className="h-px flex-1 bg-zinc-700" />
-            <span className="text-[10px]">scalars / top-K rows via pickle Pipe</span>
+            <span className="text-[10px]">NVLink P2P + scalars / top-K rows via IPC</span>
             <div className="h-px flex-1 bg-zinc-700" />
           </div>
           <div className="mt-3 bg-zinc-800 rounded-lg p-3 text-center border border-zinc-700">
@@ -503,7 +503,7 @@ export default function Home() {
         <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             { title: "Python + cuDF > custom C++ CUDA", desc: "High-level GPU libraries, when parallelized correctly, outperform hand-written kernels with 10x less code." },
-            { title: "Reduce locally, never shuffle", desc: "Each GPU returns scalars or top-K rows over IPC. The coordinator merges kilobytes, not gigabytes. Zero NVLink needed." },
+            { title: "Reduce locally, minimize shuffle", desc: "Each GPU reduces locally and returns scalars or top-K rows. NVLink handles cross-GPU transfers when needed, but most queries merge kilobytes, not gigabytes." },
             { title: "One line change = 88x speedup", desc: ".nlargest(10) on GPU before .to_pandas(). Avoids copying 56M rows to CPU for a 10-row result." },
             { title: "Eager load > lazy load", desc: "Load all columns once at startup (6.5s). Sirius lazy-loads per query, paying 0.3-70s cold start each time." },
           ].map((item, i) => (
