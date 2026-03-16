@@ -523,6 +523,24 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Next Steps */}
+      <section className="pb-20 px-6">
+        <h2 className="text-2xl font-bold text-center mb-8">Next Steps</h2>
+        <div className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            { title: "Built-in ML via UDFs", desc: "User-defined functions for ML workflows that operate directly on your relational data — no ETL pipeline needed." },
+            { title: "Multi-node (InfiniBand + RoCE)", desc: "Scale beyond a single machine with RDMA networking and topology-aware query planning across GPU clusters." },
+            { title: "AMD + Blackwell support", desc: "Optimized kernels for NVIDIA Blackwell (B200) and AMD Instinct GPUs to run on any accelerator." },
+            { title: "Overflow to CPU and disk", desc: "Graceful spilling for datasets larger than GPU memory — seamless fallback to CPU RAM and NVMe without query failure." },
+          ].map((item, i) => (
+            <div key={i} className="bg-zinc-900/50 rounded-xl p-4 border border-zinc-800">
+              <div className="text-sm font-medium text-zinc-200 mb-1">{item.title}</div>
+              <div className="text-xs text-zinc-500 leading-relaxed">{item.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="pb-12 text-center text-zinc-600 text-xs space-y-1">
         <p>
