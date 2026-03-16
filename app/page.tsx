@@ -226,39 +226,47 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 
 function Leaderboard() {
   const entries = [
-    { name: "RAPIDS-Bench", hw: "4x NVIDIA H200", hot: 1.10, cold: 0.81, load: "6.5s", size: "14.8 GB", combined: 2.18, ours: true },
-    { name: "Sirius", hw: "1x NVIDIA GH200", hot: 1.45, cold: 52.8, load: "26.3s", size: "26.9 GB", combined: 2.86, ours: false },
-    { name: "ClickHouse (web)", hw: "c8g.metal-48xl", hot: 3.27, cold: 8.47, load: "0s", size: "14.6 GB", combined: 3.06, ours: false },
-    { name: "ClickHouse Cloud", hw: "2x 236GiB (GCP)", hot: 3.9, cold: 5.82, load: "11.5s", size: "10.2 GB", combined: 3.06, ours: false },
-    { name: "MotherDuck", hw: "mega", hot: 3.53, cold: 2.56, load: "60.7s", size: "23.6 GB", combined: 3.16, ours: false },
+    { name: "CanisDB", hw: "4x NVIDIA H200", perf: 2.17, price: "$8.00/hr", capacity: "~400GB", ours: true },
+    { name: "SiriusDB", hw: "1x NVIDIA GH200", perf: 2.86, price: "$2.00/hr", capacity: "~100GB", ours: false },
+    { name: "ClickHouse", hw: "c8g.metal-48xl", perf: 3.06, price: "$8.57/hr", capacity: "~TBs", ours: false },
+    { name: "MotherDuck", hw: "mega", perf: 3.14, price: "$12.00/hr", capacity: "~100GB", ours: false },
   ];
-  const maxC = Math.max(...entries.map((e) => e.combined));
+  const maxPerf = Math.max(...entries.map((e) => e.perf));
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-2">
-      {entries.map((e, i) => (
-        <div key={i} className="flex items-center gap-3">
-          <span className="text-zinc-500 text-sm w-5 text-right font-mono">{i + 1}</span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className={`text-sm font-medium ${e.ours ? "text-green-400" : "text-zinc-300"}`}>{e.name}</span>
-              <span className="text-[10px] text-zinc-600">{e.hw}</span>
-              <span className="ml-auto text-[10px] text-zinc-600 font-mono hidden md:inline">
-                hot={e.hot} cold={e.cold} load={e.load} size={e.size}
-              </span>
+    <div className="w-full max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-3 px-1 text-[10px] text-zinc-600 uppercase tracking-wider">
+        <span className="w-5" />
+        <span className="flex-1">System</span>
+        <span className="w-20 text-right">Price</span>
+        <span className="w-20 text-right">Capacity</span>
+        <span className="w-14 text-right">Score</span>
+      </div>
+      <div className="space-y-2">
+        {entries.map((e, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <span className="text-zinc-500 text-sm w-5 text-right font-mono">{i + 1}</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`text-sm font-medium ${e.ours ? "text-green-400" : "text-zinc-300"}`}>{e.name}</span>
+                <span className="text-[10px] text-zinc-600">{e.hw}</span>
+              </div>
+              <div className="h-5 bg-zinc-900 rounded overflow-hidden border border-zinc-800">
+                <div
+                  className={`h-full rounded ${e.ours ? "bg-green-500" : "bg-zinc-700"}`}
+                  style={{ width: `${(e.perf / maxPerf) * 100}%` }}
+                />
+              </div>
             </div>
-            <div className="h-5 bg-zinc-900 rounded overflow-hidden border border-zinc-800">
-              <div
-                className={`h-full rounded ${e.ours ? "bg-green-500" : "bg-zinc-700"}`}
-                style={{ width: `${(e.combined / maxC) * 100}%` }}
-              />
-            </div>
+            <span className="text-zinc-400 font-mono text-xs w-20 text-right">{e.price}</span>
+            <span className="text-zinc-400 font-mono text-xs w-20 text-right">{e.capacity}</span>
+            <span className={`font-mono text-sm w-14 text-right ${e.ours ? "text-green-400" : "text-zinc-400"}`}>
+              x{e.perf.toFixed(2)}
+            </span>
           </div>
-          <span className={`font-mono text-sm w-14 text-right ${e.ours ? "text-green-400" : "text-zinc-400"}`}>
-            x{e.combined.toFixed(2)}
-          </span>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -289,7 +297,7 @@ export default function Home() {
       {/* Stats */}
       <section className="pb-16 px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
-          <StatCard label="Combined Score" value="x2.18" sub="weighted geo mean (lower is better)" />
+          <StatCard label="Combined Score" value="x2.17" sub="weighted geo mean (lower is better)" />
           <StatCard label="Hot Run" value="x1.10" sub="vs per-query best across all systems" />
           <StatCard label="Load Time" value="6.5s" sub="14.8 GB parquet into 4 GPUs" />
           <StatCard label="Total Queries" value="43/43" sub="100M rows, 105 columns" />

@@ -1,7 +1,7 @@
 {
   "systems": {
     "rapids": {
-      "name": "RAPIDS-Bench",
+      "name": "CanisDB",
       "hw": "4x NVIDIA H200 (GPU)",
       "times": [
         0.0,
